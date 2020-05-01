@@ -9,11 +9,14 @@ export function makePrismaLink({
   endpoint,
   token,
   debug,
+  links,
 }: {
   endpoint: string
   token?: string
   debug?: boolean
+  links?: ApolloLink[]
 }): ApolloLink {
+  const additionalLinks: ApolloLink[] = links ? links : []
   const httpLink = new HTTPLinkDataloader({
     uri: endpoint,
     headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -65,9 +68,14 @@ export function makePrismaLink({
       })
     })
 
-    return ApolloLink.from([debugLink, reportErrors, backendLink])
+    return ApolloLink.from([
+      debugLink,
+      reportErrors,
+      backendLink,
+      ...additionalLinks,
+    ])
   } else {
-    return ApolloLink.from([reportErrors, backendLink])
+    return ApolloLink.from([reportErrors, backendLink, ...additionalLinks])
   }
 }
 
